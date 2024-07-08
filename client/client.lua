@@ -48,40 +48,46 @@ end)
 RegisterNetEvent('dispatch:receiveShotAlert')
 AddEventHandler('dispatch:receiveShotAlert', function(data)
     if isPolice then
-        lib.alertDialog({
-            header = 'Dispatch',
-            content = 'Un coup de feu a été tiré. Voulez-vous prendre en charge cet incident?',
-            centered = false,
-            cancel = true,
-            size = 'md',
-            overflow = true,
-            labels = {
-                cancel = 'Non',
-                confirm = 'Oui'
-            },
-            style = {
-                top = '10px',
-                right = '10px',
-                position = 'fixed'
-            }
-        }).next(function(response)
-            if response == 'confirm' then
-                SetNewWaypoint(data.coords.x, data.coords.y)
-                lib.notify({
-                    title = 'Dispatch',
-                    description = 'Vous avez accepté l\'incident.',
-                    type = 'success',
-                    icon = 'fa-solid fa-check',
-                    position = 'top-right'
-                })
-            else
-                lib.notify({
-                    title = 'Dispatch',
-                    description = 'Vous avez refusé l\'incident.',
-                    type = 'error',
-                    icon = 'fa-solid fa-times',
-                    position = 'top-right'
-                })
+        local id = 'dispatch_' .. math.random(1000, 9999)
+        local notification = {
+            id = id,
+            title = 'Dispatch',
+            description = 'Un coup de feu a été tiré. Voulez-vous prendre en charge cet incident?\n\n**[Y] Oui** | **[N] Non**',
+            type = 'inform',
+            icon = 'fa-solid fa-bullhorn',
+            position = 'top-right',
+            duration = 15000,  -- 15 seconds to respond
+            showDuration = true,
+            sound = { bank = 'DLC_WMSIRENS_SOUNDSET', set = 'WMSIRENS_SOUNDSET', name = 'SIRENS_AIRHORN' }
+        }
+
+        lib.notify(notification)
+
+        Citizen.CreateThread(function()
+            while true do
+                Citizen.Wait(0)
+                if IsControlJustReleased(0, 246) then -- Y key
+                    lib.notify({
+                        id = id,
+                        title = 'Dispatch',
+                        description = 'Vous avez accepté l\'incident.',
+                        type = 'success',
+                        icon = 'fa-solid fa-check',
+                        position = 'top-right'
+                    })
+                    SetNewWaypoint(data.coords.x, data.coords.y)
+                    break
+                elseif IsControlJustReleased(0, 249) then -- N key
+                    lib.notify({
+                        id = id,
+                        title = 'Dispatch',
+                        description = 'Vous avez refusé l\'incident.',
+                        type = 'error',
+                        icon = 'fa-solid fa-times',
+                        position = 'top-right'
+                    })
+                    break
+                end
             end
         end)
     end
