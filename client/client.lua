@@ -49,24 +49,26 @@ RegisterNetEvent('dispatch:receiveShotAlert')
 AddEventHandler('dispatch:receiveShotAlert', function(data)
     if isPolice then
         local id = 'dispatch_' .. math.random(1000, 9999)
-        local notification = {
+        lib.notify({
             id = id,
             title = 'Dispatch',
-            description = 'Un coup de feu a été tiré. Voulez-vous prendre en charge cet incident?\n\n**[Y] Oui** | **[N] Non**',
+            description = 'Un coup de feu a été tiré. Voulez-vous prendre en charge cet incident?\n\n**[Enter] Oui** | **[Delete] Non**',
             type = 'inform',
             icon = 'fa-solid fa-bullhorn',
             position = 'top-right',
             duration = 15000,  -- 15 seconds to respond
-            showDuration = true,
-            sound = { bank = 'DLC_WMSIRENS_SOUNDSET', set = 'WMSIRENS_SOUNDSET', name = 'SIRENS_AIRHORN' }
-        }
-
-        lib.notify(notification)
+            showDuration = true
+        })
 
         Citizen.CreateThread(function()
-            while true do
+            local timeout = GetGameTimer() + 15000
+            local responded = false
+
+            while not responded and GetGameTimer() < timeout do
                 Citizen.Wait(0)
-                if IsControlJustReleased(0, 246) then -- Y key
+
+                if IsControlJustReleased(0, 191) then
+                    responded = true
                     lib.notify({
                         id = id,
                         title = 'Dispatch',
@@ -76,8 +78,8 @@ AddEventHandler('dispatch:receiveShotAlert', function(data)
                         position = 'top-right'
                     })
                     SetNewWaypoint(data.coords.x, data.coords.y)
-                    break
-                elseif IsControlJustReleased(0, 249) then -- N key
+                elseif IsControlJustReleased(0, 178) then
+                    responded = true
                     lib.notify({
                         id = id,
                         title = 'Dispatch',
@@ -86,7 +88,6 @@ AddEventHandler('dispatch:receiveShotAlert', function(data)
                         icon = 'fa-solid fa-times',
                         position = 'top-right'
                     })
-                    break
                 end
             end
         end)
