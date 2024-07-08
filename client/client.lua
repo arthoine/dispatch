@@ -1,6 +1,7 @@
 ESX = nil
 local isPolice = false
 local lastShotTime = {}
+local lastDrugDealTime = {}
 local cooldownTime = 15 -- secondes
 
 -- Initialisation de ESX
@@ -38,21 +39,25 @@ Citizen.CreateThread(function()
             if not lastShotTime[playerId] or (GetGameTimer() - lastShotTime[playerId]) > (cooldownTime * 1000) then
                 lastShotTime[playerId] = GetGameTimer()
                 local coords = GetEntityCoords(playerPed)
-                TriggerServerEvent('dispatch:sendShotAlert', coords)
+                TriggerServerEvent('dispatch:sendAlert', 'Un coup de feu a été tiré.', coords)
             end
         end
     end
 end)
 
--- Reçoit les alertes de tir et affiche une notification
-RegisterNetEvent('dispatch:receiveShotAlert')
-AddEventHandler('dispatch:receiveShotAlert', function(data)
+-- todo(drogue event)
+--local coords = GetEntityCoords(playerPed)
+--TriggerServerEvent('dispatch:sendAlert', 'Une vente de drogue a été détectée.', coords)
+
+-- Reçoit les alertes et affiche une notification
+RegisterNetEvent('dispatch:receiveAlert')
+AddEventHandler('dispatch:receiveAlert', function(description, coords)
     if isPolice then
         local id = 'dispatch_' .. math.random(1000, 9999)
         lib.notify({
             id = id,
             title = 'Dispatch',
-            description = 'Un coup de feu a été tiré. Voulez-vous prendre en charge cet incident?\n\n**[Enter] Oui** | **[Delete] Non**',
+            description = description .. '\n\n**[Enter] Oui** | **[Delete] Non**',
             type = 'inform',
             icon = 'fa-solid fa-bullhorn',
             position = 'top-right',
@@ -77,7 +82,7 @@ AddEventHandler('dispatch:receiveShotAlert', function(data)
                         icon = 'fa-solid fa-check',
                         position = 'top-right'
                     })
-                    SetNewWaypoint(data.coords.x, data.coords.y)
+                    SetNewWaypoint(coords.x, coords.y)
                 elseif IsControlJustReleased(0, 178) then
                     responded = true
                     lib.notify({
