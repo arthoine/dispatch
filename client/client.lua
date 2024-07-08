@@ -1,7 +1,6 @@
 ESX = nil
 local isPolice = false
 local lastShotTime = {}
-local lastDrugDealTime = {}
 local cooldownTime = 15 -- secondes
 
 -- Initialisation de ESX
